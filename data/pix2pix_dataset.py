@@ -60,7 +60,8 @@ class Pix2pixDataset(BaseDataset):
         label = Image.open(label_path)
         params = get_params(self.opt, label.size)
         transform_label = get_transform(self.opt, params, method=Image.NEAREST, normalize=False)
-        label_tensor = transform_label(label) * 255.0
+        label_tensor = transform_label(label) * 255.0 #(0, 255) h*w using graysale image to represt class.
+        # gray---> totensor (0,1) ----> *255: means classes(183) was average over (0,255), 255 was the class #183 
         label_tensor[label_tensor == 255] = self.opt.label_nc  # 'unknown' is opt.label_nc
 
         # input image (real images)

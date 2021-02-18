@@ -31,7 +31,7 @@ class CocoDataset(Pix2pixDataset):
         root = opt.dataroot
         phase = 'val' if opt.phase == 'test' else opt.phase
 
-        label_dir = os.path.join(root, '%s_label' % phase)
+        label_dir = os.path.join(root, '%s2017_label' % phase)
         label_paths = make_dataset(label_dir, recursive=False, read_cache=True)
 
         if not opt.coco_no_portraits and opt.isTrain:
@@ -40,7 +40,7 @@ class CocoDataset(Pix2pixDataset):
                 label_portrait_paths = make_dataset(label_portrait_dir, recursive=False, read_cache=True)
                 label_paths += label_portrait_paths
 
-        image_dir = os.path.join(root, '%s_img' % phase)
+        image_dir = os.path.join(root, '%s2017' % phase)
         image_paths = make_dataset(image_dir, recursive=False, read_cache=True)
 
         if not opt.coco_no_portraits and opt.isTrain:
@@ -50,7 +50,7 @@ class CocoDataset(Pix2pixDataset):
                 image_paths += image_portrait_paths
 
         if not opt.no_instance:
-            instance_dir = os.path.join(root, '%s_inst' % phase)
+            instance_dir = os.path.join(root, '%s2017_instance' % phase)
             instance_paths = make_dataset(instance_dir, recursive=False, read_cache=True)
 
             if not opt.coco_no_portraits and opt.isTrain:
