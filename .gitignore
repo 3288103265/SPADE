@@ -6,3 +6,5 @@ results/
 *.pkl
 *.pyc
 .vscode
+sample/
+output/

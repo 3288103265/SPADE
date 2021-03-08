@@ -57,11 +57,13 @@ class Pix2pixDataset(BaseDataset):
     def __getitem__(self, index):
         # Label Image
         label_path = self.label_paths[index]
-        label = Image.open(label_path)
+        label = Image.open(label_path).convert('L')
         params = get_params(self.opt, label.size)
         transform_label = get_transform(self.opt, params, method=Image.NEAREST, normalize=False)
         label_tensor = transform_label(label) * 255.0 #183 of 255 gray scale
+        
         label_tensor[label_tensor == 255] = self.opt.label_nc  # 'unknown' is opt.label_nc
+        label_tensor[label_tensor > self.opt.label_nc] == 0
 
         # input image (real images)
         image_path = self.image_paths[index]
@@ -84,7 +86,11 @@ class Pix2pixDataset(BaseDataset):
                 instance_tensor = transform_label(instance) * 255
                 instance_tensor = instance_tensor.long()
             else:
-                instance_tensor = transform_label(instance)
+                # instance_tensor = transform_label(instance)
+                instance = instance.convert('L')
+                instance_tensor = transform_label(instance) * 255
+                instance_tensor = instance_tensor.long()
+                
 
         input_dict = {'label': label_tensor, # H*W greyscale image
                       'instance': instance_tensor, # C*H*W one-hot label

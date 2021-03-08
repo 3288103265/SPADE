@@ -148,10 +148,13 @@ class Visualizer():
         txts = []
         links = []
 
-        for label, image_numpy in visuals.items():
+        for label, pred_numpy in visuals.items():
             image_name = os.path.join(label, '%s.png' % (name))
             save_path = os.path.join(image_dir, image_name)
-            util.save_image(image_numpy, save_path, create_dir=True)
+            util.save_image(pred_numpy, save_path, create_dir=True)
+            
+            # save_path = os.path.join(image_dir, "gt", image_name)
+            # util.save_image(real_numpy, save_path, create_dir=True)
 
             ims.append(image_name)
             txts.append(label)
