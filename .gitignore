@@ -7,4 +7,4 @@ results/
 *.pyc
 .vscode
 sample/
-output/
+output*
