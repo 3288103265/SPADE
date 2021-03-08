@@ -120,7 +120,8 @@ class Pix2PixModel(torch.nn.Module):
         nc = self.opt.label_nc + 1 if self.opt.contain_dontcare_label \
             else self.opt.label_nc
         input_label = self.FloatTensor(bs, nc, h, w).zero_()
-        
+        label_map[label_map>=nc] = 0
+        assert input_label.max() < nc
         input_semantics = input_label.scatter_(1, label_map, 1.0)
 
         # concatenate instance map if it exists
