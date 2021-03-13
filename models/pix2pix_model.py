@@ -129,6 +129,11 @@ class Pix2PixModel(torch.nn.Module):
             inst_map = data['instance']
             instance_edge_map = self.get_edges(inst_map)
             input_semantics = torch.cat((input_semantics, instance_edge_map), dim=1)
+        else:
+            inst_map = torch.zeros_like(label_map)
+            instance_edge_map = self.get_edges(inst_map)
+            input_semantics = torch.cat(
+                (input_semantics, instance_edge_map), dim=1)
 
         return input_semantics, data['image']
 
