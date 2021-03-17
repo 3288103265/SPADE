@@ -162,7 +162,7 @@ class DepthSPADE(nn.Module):
         gamma = self.mlp_gamma(actv)
         beta = self.mlp_beta(actv)
         
-        depthmap = F.interpolate(depthmap, size=x.size()[:2], mode='nearest')
+        depthmap = F.interpolate(depthmap, size=x.size()[2:], mode='nearest')
         actv_d = self.mlp_shared_depth(depthmap)
         gamma_d = self.mlp_gamma_depth(actv_d)
         beta_d = self.mlp_beta_depth(actv_d)

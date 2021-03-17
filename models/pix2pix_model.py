@@ -295,18 +295,18 @@ class Pix2PixDepthModel(torch.nn.Module):
 
         if mode == 'generator':
             g_loss, generated = self.compute_generator_loss(
-                input_semantics, real_image)
+                input_semantics, real_image, depth_map)
             return g_loss, generated
         elif mode == 'discriminator':
             d_loss = self.compute_discriminator_loss(
-                input_semantics, real_image)
+                input_semantics, real_image, depth_map)
             return d_loss
         elif mode == 'encode_only':
             z, mu, logvar = self.encode_z(real_image)
             return mu, logvar
         elif mode == 'inference':
             with torch.no_grad():
-                fake_image, _ = self.generate_fake(input_semantics, real_image)
+                fake_image, _ = self.generate_fake(input_semantics, real_image, depth_map)
             return fake_image, real_image
         else:
             raise ValueError("|mode| is invalid")
@@ -369,6 +369,7 @@ class Pix2PixDepthModel(torch.nn.Module):
 
         # create one-hot label map
         label_map = data['label']
+        depth_map = data['depth']
 
         bs, _, h, w = label_map.size()
         nc = self.opt.label_nc + 1 if self.opt.contain_dontcare_label \
@@ -377,6 +378,9 @@ class Pix2PixDepthModel(torch.nn.Module):
         label_map[label_map >= nc] = 0
         assert input_label.max() < nc
         input_semantics = input_label.scatter_(1, label_map, 1.0)
+        
+        input_depth = self.FloatTensor(bs, 256, h, w).zero_()
+        depth_map = input_depth.scatter(1, depth_map, 1.0)
 
         # concatenate instance map if it exists
         if not self.opt.no_instance:
@@ -390,17 +394,18 @@ class Pix2PixDepthModel(torch.nn.Module):
             input_semantics = torch.cat(
                 (input_semantics, instance_edge_map), dim=1)
 
-        return input_semantics, data['image']
+        return input_semantics, data['image'], depth_map
 
-    def compute_generator_loss(self, input_semantics, real_image):
+    def compute_generator_loss(self, input_semantics, real_image, depth_map):
         G_losses = {}
 
         fake_image, KLD_loss = self.generate_fake(
-            input_semantics, real_image, compute_kld_loss=self.opt.use_vae)
+            input_semantics, real_image, depth_map,  compute_kld_loss=self.opt.use_vae)
 
         if self.opt.use_vae:
             G_losses['KLD'] = KLD_loss
 
+        #TODO: Add depth discriminator.
         pred_fake, pred_real = self.discriminate(
             input_semantics, fake_image, real_image)
 
@@ -425,10 +430,10 @@ class Pix2PixDepthModel(torch.nn.Module):
 
         return G_losses, fake_image
 
-    def compute_discriminator_loss(self, input_semantics, real_image):
+    def compute_discriminator_loss(self, input_semantics, real_image, depth_map):
         D_losses = {}
         with torch.no_grad():
-            fake_image, _ = self.generate_fake(input_semantics, real_image)
+            fake_image, _ = self.generate_fake(input_semantics, real_image, depth_map)
             fake_image = fake_image.detach()
             fake_image.requires_grad_()
 
@@ -447,7 +452,7 @@ class Pix2PixDepthModel(torch.nn.Module):
         z = self.reparameterize(mu, logvar)
         return z, mu, logvar
 
-    def generate_fake(self, input_semantics, real_image, compute_kld_loss=False):
+    def generate_fake(self, input_semantics, real_image, depth_map, compute_kld_loss=False):
         z = None
         KLD_loss = None
         if self.opt.use_vae:  # use real_image for style?
@@ -455,7 +460,7 @@ class Pix2PixDepthModel(torch.nn.Module):
             if compute_kld_loss:
                 KLD_loss = self.KLDLoss(mu, logvar) * self.opt.lambda_kld
 
-        fake_image = self.netG(input_semantics, z=z)
+        fake_image = self.netG(input_semantics, depth_map, z=z)
 
         assert (not compute_kld_loss) or self.opt.use_vae, \
             "You cannot compute KLD loss if opt.use_vae == False"

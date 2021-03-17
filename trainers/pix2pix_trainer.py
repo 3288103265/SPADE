@@ -4,7 +4,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 """
 
 from models.networks.sync_batchnorm import DataParallelWithCallback
-from models.pix2pix_model import Pix2PixModel
+# from models.pix2pix_model import Pix2PixModel
+from models.pix2pix_model import Pix2PixDepthModel as Pix2PixModel
 
 
 class Pix2PixTrainer():
