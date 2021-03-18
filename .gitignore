@@ -8,3 +8,4 @@ results/
 .vscode
 sample/
 output*
+datasets/coco_depth/
