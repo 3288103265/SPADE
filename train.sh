@@ -1,0 +1,1 @@
+python train.py --name coco_depth_train --dataset_mode cocodepth --dataroot datasets/coco_depth --gpu_ids 0,2,3,4,7 --batchSize 160 --niter_decay 50
