@@ -168,6 +168,8 @@ class DepthSPADE(nn.Module):
         beta_d = self.mlp_beta_depth(actv_d)
 
         # apply scale and bias
-        out = normalized * (1 + gamma+ torch.log(gamma_d)) + beta + torch.log(beta_d)
+        # log(0) -> -inf
+        # out = normalized * (1 + gamma+ torch.log(gamma_d)) + beta + torch.log(beta_d)
+        out = normalized * (1 + gamma+ gamma_d) + beta + beta_d
 
         return out
