@@ -10,6 +10,7 @@ import data
 from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
 from trainers.pix2pix_trainer import Pix2PixTrainer
+import wandb
 
 # parse options
 opt = TrainOptions().parse()
@@ -28,7 +29,8 @@ iter_counter = IterationCounter(opt, len(dataloader))
 
 # create tool for visualization
 visualizer = Visualizer(opt)
-
+wandb.login()
+wandb.init(project='dev-depth-spade', config=opt)
 for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
     for i, data_i in enumerate(dataloader, start=iter_counter.epoch_iter):
@@ -45,9 +47,11 @@ for epoch in iter_counter.training_epochs():
         # Visualizations
         if iter_counter.needs_printing():
             losses = trainer.get_latest_losses()
-            visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
-                                            losses, iter_counter.time_per_iter)
-            visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
+            # visualizer.print_current_errors(epoch, iter_counter.epoch_iter,
+            #                                 losses, iter_counter.time_per_iter)
+            # visualizer.plot_current_errors(losses, iter_counter.total_steps_so_far)
+            losses = {key:value.cpu() for key, value in losses.items()}
+            wandb.log(losses, commit=True)
 
         if iter_counter.needs_displaying():
             visuals = OrderedDict([('input_label', data_i['label']),
